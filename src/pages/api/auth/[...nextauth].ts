@@ -13,17 +13,14 @@ export default NextAuth({
       // You can pass any HTML attribute to the <input> tag through the object.
       credentials: {
         email: {
-          label: 'email',
+          label: 'E-mail',
           type: 'email',
           placeholder: 'jsmith@example.com',
         },
-        password: { label: 'Password', type: 'password' },
-        tenantKey: {
-          label: 'Tenant Key',
-          type: 'text',
-        },
+        password: { label: 'Senha', type: 'password', placeholder: "* * * * * * * *" },
       },
       async authorize(credentials, req) {
+        if(credentials === undefined) return null;
         const payload = {
           email: credentials.email,
           password: credentials.password,
@@ -34,8 +31,6 @@ export default NextAuth({
           body: JSON.stringify(payload),
           headers: {
             'Content-Type': 'application/json',
-            tenant: credentials.tenantKey,
-            'Accept-Language': 'en-US',
           },
         });
 
@@ -60,10 +55,12 @@ export default NextAuth({
   },
   callbacks: {
     async jwt({ token, user, account }) {
-      if (account && user) {
+      if (account && user !== undefined) {
         return {
           ...token,
+          // @ts-ignore
           accessToken: user.data.token,
+          // @ts-ignore
           refreshToken: user.data.refreshToken,
         };
       }
@@ -72,8 +69,11 @@ export default NextAuth({
     },
 
     async session({ session, token }) {
+      // @ts-ignore
       session.user.accessToken = token.accessToken;
+      // @ts-ignore
       session.user.refreshToken = token.refreshToken;
+      // @ts-ignore
       session.user.accessTokenExpires = token.accessTokenExpires;
 
       return session;

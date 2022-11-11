@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { signIn, getCsrfToken } from 'next-auth/react';
-import { Formik, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
+import { ErrorMessage, Field, Formik } from 'formik';
+import { GetServerSidePropsContext } from 'next';
+import { getCsrfToken, signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import React, { useState } from 'react';
+import * as Yup from 'yup';
 
 export default function SignIn({ csrfToken }) {
   const router = useRouter();
@@ -18,16 +19,12 @@ export default function SignIn({ csrfToken }) {
             .email('Invalid email address')
             .required('Please enter your email'),
           password: Yup.string().required('Please enter your password'),
-          tenantKey: Yup.string()
-            .max(20, 'Must be 20 characters or less')
-            .required('Please enter your organization name'),
         })}
         onSubmit={async (values, { setSubmitting }) => {
-          const res = await signIn('credentials', {
+          const res: any = await signIn('credentials', {
             redirect: false,
             email: values.email,
             password: values.password,
-            tenantKey: values.tenantKey,
             callbackUrl: `${window.location.origin}`,
           });
           if (res?.error) {
@@ -57,7 +54,7 @@ export default function SignIn({ csrfToken }) {
                     htmlFor="email"
                     className="uppercase text-sm text-gray-600 font-bold"
                   >
-                    Email
+                    E-mail
                     <Field
                       name="email"
                       aria-label="enter your email"
@@ -76,7 +73,7 @@ export default function SignIn({ csrfToken }) {
                     htmlFor="password"
                     className="uppercase text-sm text-gray-600 font-bold"
                   >
-                    password
+                    Senha
                     <Field
                       name="password"
                       aria-label="enter your password"
@@ -88,25 +85,6 @@ export default function SignIn({ csrfToken }) {
 
                   <div className="text-red-600 text-sm">
                     <ErrorMessage name="password" />
-                  </div>
-                </div>
-                <div className="mb-6">
-                  <label
-                    htmlFor="tenantKey"
-                    className="uppercase text-sm text-gray-600 font-bold"
-                  >
-                    Tenant
-                    <Field
-                      name="tenantKey"
-                      aria-label="enter your Tenant"
-                      aria-required="true"
-                      type="text"
-                      className="w-full bg-gray-300 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline"
-                    />
-                  </label>
-
-                  <div className="text-red-600 text-sm">
-                    <ErrorMessage name="tenantKey" />
                   </div>
                 </div>
                 <div className="flex items-center justify-center">
@@ -126,11 +104,10 @@ export default function SignIn({ csrfToken }) {
   );
 }
 
-// This is the recommended way for Next.js 9.3 or newer
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
-      csrfToken: await getCsrfToken(context),
+      csrfToken: String(await getCsrfToken(context) ?? ""),
     },
   };
 }
